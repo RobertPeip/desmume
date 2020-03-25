@@ -50,7 +50,7 @@
   <!-- desmume customization: set PlatformToolset to an uptodate choice for vs2015 and leave it to the default vs2010 toolset for vs2010 -->
   <!-- NOTE: the location of this hack is important or else we break resource editing, intellisense, and ctrl+f7 in vs2010 either; or it doesnt work for vs2015. weird. -->
   <PropertyGroup Condition="'$(VisualStudioVersion)' == '16.0'" Label="Configuration">
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(VisualStudioVersion)' == '15.0'" Label="Configuration">
     <PlatformToolset>v141_xp</PlatformToolset>
@@ -86,6 +86,11 @@
     <Link>
       <LargeAddressAware>true</LargeAddressAware>
     </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\addons\slot1comp_mc.cpp" />

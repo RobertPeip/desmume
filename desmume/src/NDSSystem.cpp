@@ -1908,7 +1908,7 @@ static /*donotinline*/ std::pair<s32,s32> armInnerLoop(
 	const u64 nds_timer_base, const s32 s32next, s32 arm9, s32 arm7)
 {
 	s32 timer = minarmtime<doarm9,doarm7>(arm9,arm7);
-	while(timer < s32next && !sequencer.reschedule && execute)
+	//while(timer < s32next && !sequencer.reschedule && execute)
 	{
 		if(doarm9 && (!doarm7 || arm9 <= timer))
 		{
@@ -2116,6 +2116,27 @@ void NDS_exec(s32 nb)
 				nds.idleCycles[1] -= (s32)(nds_arm7_timer-nds_timer);
 				nds_arm7_timer = nds_timer;
 			}
+
+
+			// debug out
+			if (nds.commands == 0000001 && nds.runmoretrace == 0)
+			{
+				nds.traclist_ptr = 0;
+				nds.runmoretrace = 100000;
+			}
+
+			if (nds.runmoretrace > 0)
+			{
+				nds.Tracelist[nds.traclist_ptr][0].update(true);
+				nds.Tracelist[nds.traclist_ptr][1].update(false);
+				nds.traclist_ptr++;
+				nds.runmoretrace = nds.runmoretrace - 1;
+				if (nds.runmoretrace == 0)
+				{
+					nds.vcd_file_last();
+				}
+			}
+			nds.commands++;
 		}
 	}
 
@@ -3238,4 +3259,206 @@ void TCommonSettings::GameHacks::apply()
 void TCommonSettings::GameHacks::clear()
 {
 	memset(&flags,0,sizeof(flags));
+}
+
+void cpustate::update(bool isArm9)
+{
+	armcpu_t cpustruct = NDS_ARM9;
+	int procnum = 0;
+
+	if (!isArm9)
+	{
+		cpustruct = NDS_ARM7;
+		procnum = 1;
+	}
+
+	int saveticks = newticks;
+	this->busprefetch = 0; // (uint)BusTiming.busPrefetchCount;
+
+	for (int i = 0; i < 16; i++)
+	{
+		this->debugregs[i] = cpustruct.R[i];
+	}
+
+	flag_Negative = cpustruct.CPSR.bits.N;
+	flag_Carry = cpustruct.CPSR.bits.C;
+	flag_Zero = cpustruct.CPSR.bits.Z;
+	flag_V_Overflow = cpustruct.CPSR.bits.V;
+	
+	this->thumbmode = cpustruct.CPSR.bits.T;
+	this->opcode = cpustruct.instruction;
+	this->armmode = cpustruct.CPSR.bits.mode;
+
+	this->irpdisable = cpustruct.CPSR.bits.Q;
+
+	//this->IF_intern = IRP.IRP_Flags;
+	//irp_wait = 0; //irpwait;
+	//
+	this->timer0 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000100); // timer 0
+	this->timer1 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000104); // timer 1
+	this->timer2 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000108); // timer 2
+	this->timer3 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x0400010C); // timer 3
+	
+	//UInt32 memory02 = Memory.read_dword(0x04000080); // sound cnt
+	//UInt32 memory01 = Memory.read_dword(0x04000000); // display settings
+	//this->memory03 = Memory.read_dword(0x04000004); // vcount
+	//this->memory03 = Memory.read_dword(0x04000208); // master irp
+	//this->memory01 = Memory.read_dword(0x04000200); // IME/IF
+	
+	this->memory01 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000000); // display settings
+	this->memory02 = 0;// (UInt32)SoundDMA.soundDMAs[0].fifo.Count;
+	this->memory03 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000004); // vcount
+	
+	this->debug_dmatranfers = 0; // DMA.debug_dmatranfers;
+	
+	R16 = cpustruct.CPSR.val;
+	R17 = cpustruct.SPSR.val;
+	R13_USR = cpustruct.R13_usr;
+	R14_USR = cpustruct.R14_usr;
+	R13_IRQ = cpustruct.R13_irq;
+	R14_IRQ = cpustruct.R14_irq;
+	R13_SVC = cpustruct.R13_svc;
+	R14_SVC = cpustruct.R14_svc;
+	SPSR_IRQ = cpustruct.SPSR_irq.val;
+	SPSR_SVC = cpustruct.SPSR_svc.val;
+
+	newticks = saveticks;
+}
+
+void NDSSystem::vcd_file_last()
+{
+	FILE* file = fopen("..\\..\\..\\..\\debug.vcd", "w");
+
+	fprintf(file, "$date Feb 29, 2134 $end\n");
+	fprintf(file, "$version 0.1 $end\n");
+	fprintf(file, "$comment no $end\n");
+	fprintf(file, "$timescale 1ps $end\n");
+	fprintf(file, "$scope module logic $end\n");
+
+	for (int cpuindex = 0; cpuindex < 2; cpuindex++)
+	{
+		fprintf(file, "$var wire 32 %dR0 cpu%d_reg0 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR1 cpu%d_reg1 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR2 cpu%d_reg2 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR3 cpu%d_reg3 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR4 cpu%d_reg4 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR5 cpu%d_reg5 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR6 cpu%d_reg6 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR7 cpu%d_reg7 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR8 cpu%d_reg8 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR9 cpu%d_reg9 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR10 cpu%d_reg10 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR11 cpu%d_reg11 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR12 cpu%d_reg12 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR13 cpu%d_reg13 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR14 cpu%d_reg14 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR15 cpu%d_reg15 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dO cpu%d_Opcode $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 1 %dFN cpu%d_Flag_Neg $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 1 %dFC cpu%d_Flag_Carry $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 1 %dFZ cpu%d_Flag_Zero $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 1 %dFV cpu%d_Flag_Overflow $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 16 %dTK cpu%d_Ticks $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 8 %dPF cpu%d_Prefetch $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 1 %dAT cpu%d_isThumb $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 8 %dM cpu%d_Mode $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 1 %dI cpu%d_IRQ_disable $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 16 %dIF cpu%d_IRQ_Flags $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 8 %dIW cpu%d_IRQ_wait $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dT0 cpu%d_Timer_0 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dT1 cpu%d_Timer_1 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dT2 cpu%d_Timer_2 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dT3 cpu%d_Timer_3 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dM1 cpu%d_Memory_1 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dM2 cpu%d_Memory_2 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dM3 cpu%d_Memory_3 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dDMA cpu%d_DMA_count $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR16 cpu%d_reg16 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR17 cpu%d_reg17 $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR13u cpu%d_R13usr $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR14u cpu%d_R14usr $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR13i cpu%d_R13irq $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR14i cpu%d_R14irq $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR13s cpu%d_R13svc $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dR14s cpu%d_R14svc $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dSPi cpu%d_SPSR_irq $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 32 %dSPs cpu%d_SPSR_svc $end\n", cpuindex, cpuindex);
+	}
+	fprintf(file, "$upscope $end\n");
+	fprintf(file, "$enddefinitions $end\n");
+
+	int i = 0;
+	while (true)
+	{
+		fprintf(file, "#%d\n", i); //timestamp
+
+		for (int cpuindex = 0; cpuindex < 2; cpuindex++)
+		{
+			cpustate laststate = Tracelist[i][cpuindex];
+			cpustate state = Tracelist[i][cpuindex];
+			if (i > 0)
+			{
+				laststate = Tracelist[i - 1][cpuindex];
+			}
+
+			// all changes for this timestamp
+			for (int j = 0; j < 16; j++)
+			{
+				if (i == 0 || state.debugregs[j] != laststate.debugregs[j]) fprintf(file, "b%s %dR%d\n", std::bitset<32>(state.debugregs[j]).to_string().c_str(), cpuindex, j);
+			}
+			if (i == 0 || state.opcode != laststate.opcode)
+			{
+				if (state.thumbmode)
+				{
+					fprintf(file, "b%s %dO\n", std::bitset<16>(state.opcode).to_string().c_str(), cpuindex);
+				}
+				else
+				{
+					fprintf(file, "b%s %dO\n", std::bitset<32>(state.opcode).to_string().c_str(), cpuindex);
+				}
+			}
+
+			if (i == 0 || state.flag_Negative != laststate.flag_Negative) fprintf(file, "%s%dFN\n", std::bitset<1>(state.flag_Negative).to_string().c_str(), cpuindex);
+			if (i == 0 || state.flag_Carry != laststate.flag_Carry) fprintf(file, "%s%dFC\n", std::bitset<1>(state.flag_Carry).to_string().c_str(), cpuindex);
+			if (i == 0 || state.flag_Zero != laststate.flag_Zero) fprintf(file, "%s%dFZ\n", std::bitset<1>(state.flag_Zero).to_string().c_str(), cpuindex);
+			if (i == 0 || state.flag_V_Overflow != laststate.flag_V_Overflow) fprintf(file, "%s%dFV\n", std::bitset<1>(state.flag_V_Overflow).to_string().c_str(), cpuindex);
+
+			if (i == 0 || state.newticks != laststate.newticks) fprintf(file, "b%s %dTK\n", std::bitset<16>(state.newticks).to_string().c_str(), cpuindex);
+			if (i == 0 || state.busprefetch != laststate.busprefetch) fprintf(file, "b%s %dPF\n", std::bitset<12>(state.busprefetch).to_string().c_str(), cpuindex);
+			if (i == 0 || state.thumbmode != laststate.thumbmode) fprintf(file, "%s%dAT\n", std::bitset<1>(state.thumbmode).to_string().c_str(), cpuindex);
+			if (i == 0 || state.armmode != laststate.armmode) fprintf(file, "b%s %dM\n", std::bitset<8>(state.armmode).to_string().c_str(), cpuindex);
+			if (i == 0 || state.irpdisable != laststate.irpdisable) fprintf(file, "%s%dI\n", std::bitset<1>(state.irpdisable).to_string().c_str(), cpuindex);
+			if (i == 0 || state.IF_intern != laststate.IF_intern) fprintf(file, "b%s %dIF\n", std::bitset<16>(state.IF_intern).to_string().c_str(), cpuindex);
+			if (i == 0 || state.irp_wait != laststate.irp_wait) fprintf(file, "b%s %dIW\n", std::bitset<8>(state.irp_wait).to_string().c_str(), cpuindex);
+
+			if (i == 0 || state.timer0 != laststate.timer0) fprintf(file, "b%s %dT0\n", std::bitset<32>(state.timer0).to_string().c_str(), cpuindex);
+			if (i == 0 || state.timer1 != laststate.timer1) fprintf(file, "b%s %dT1\n", std::bitset<32>(state.timer1).to_string().c_str(), cpuindex);
+			if (i == 0 || state.timer2 != laststate.timer2) fprintf(file, "b%s %dT2\n", std::bitset<32>(state.timer2).to_string().c_str(), cpuindex);
+			if (i == 0 || state.timer3 != laststate.timer3) fprintf(file, "b%s %dT3\n", std::bitset<32>(state.timer3).to_string().c_str(), cpuindex);
+
+			if (i == 0 || state.memory01 != laststate.memory01) fprintf(file, "b%s %dM1\n", std::bitset<32>(state.memory01).to_string().c_str(), cpuindex);
+			if (i == 0 || state.memory02 != laststate.memory02) fprintf(file, "b%s %dM2\n", std::bitset<32>(state.memory02).to_string().c_str(), cpuindex);
+			if (i == 0 || state.memory03 != laststate.memory03) fprintf(file, "b%s %dM3\n", std::bitset<32>(state.memory03).to_string().c_str(), cpuindex);
+
+			if (i == 0 || state.debug_dmatranfers != laststate.debug_dmatranfers) fprintf(file, "b%s DMA\n", std::bitset<32>(state.debug_dmatranfers).to_string().c_str(), cpuindex);
+
+			if (i == 0 || state.R16 != laststate.R16) fprintf(file, "b%s %dR16\n", std::bitset<32>(state.R16).to_string().c_str(), cpuindex);
+			if (i == 0 || state.R17 != laststate.R17) fprintf(file, "b%s %dR17\n", std::bitset<32>(state.R17).to_string().c_str(), cpuindex);
+			if (i == 0 || state.R13_USR != laststate.R13_USR) fprintf(file, "b%s %dR13u\n", std::bitset<32>(state.R13_USR).to_string().c_str(), cpuindex);
+			if (i == 0 || state.R14_USR != laststate.R14_USR) fprintf(file, "b%s %dR14u\n", std::bitset<32>(state.R14_USR).to_string().c_str(), cpuindex);
+			if (i == 0 || state.R13_IRQ != laststate.R13_IRQ) fprintf(file, "b%s %dR13i\n", std::bitset<32>(state.R13_IRQ).to_string().c_str(), cpuindex);
+			if (i == 0 || state.R14_IRQ != laststate.R14_IRQ) fprintf(file, "b%s %dR14i\n", std::bitset<32>(state.R14_IRQ).to_string().c_str(), cpuindex);
+			if (i == 0 || state.R13_SVC != laststate.R13_SVC) fprintf(file, "b%s %dR13s\n", std::bitset<32>(state.R13_SVC).to_string().c_str(), cpuindex);
+			if (i == 0 || state.R14_SVC != laststate.R14_SVC) fprintf(file, "b%s %dR14s\n", std::bitset<32>(state.R14_SVC).to_string().c_str(), cpuindex);
+			if (i == 0 || state.SPSR_IRQ != laststate.SPSR_IRQ) fprintf(file, "b%s %dSPi\n", std::bitset<32>(state.SPSR_IRQ).to_string().c_str(), cpuindex);
+			if (i == 0 || state.SPSR_SVC != laststate.SPSR_SVC) fprintf(file, "b%s %dSPs\n", std::bitset<32>(state.SPSR_SVC).to_string().c_str(), cpuindex);
+		}
+
+		i = (i + 1) % Tracelist_Length;
+		if (i == traclist_ptr)
+		{
+			break;
+		}
+	}
+	fclose(file);
 }

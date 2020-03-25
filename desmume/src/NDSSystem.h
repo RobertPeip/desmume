@@ -32,6 +32,49 @@
 class CFIRMWARE;
 class EMUFILE;
 
+class cpustate
+{
+public:
+	UINT32 debugregs[16];
+
+	UINT32 opcode;
+	UINT32 flags;
+	bool flag_Negative;
+	bool flag_Carry;
+	bool flag_Zero;
+	bool flag_V_Overflow;
+	INT32 newticks;
+	UINT32 busprefetch;
+	char thumbmode;
+	char armmode;
+	char irpdisable;
+	UINT16 IF_intern;
+	int irp_wait;
+
+	UINT32 timer0;
+	UINT32 timer1;
+	UINT32 timer2;
+	UINT32 timer3;
+
+	UINT32 memory01;
+	UINT32 memory02;
+	UINT32 memory03;
+	UINT32 debug_dmatranfers;
+
+	UINT32 R16;
+	UINT32 R17;
+	UINT32 R13_USR;
+	UINT32 R14_USR;
+	UINT32 R13_IRQ;
+	UINT32 R14_IRQ;
+	UINT32 R13_SVC;
+	UINT32 R14_SVC;
+	UINT32 SPSR_IRQ;
+	UINT32 SPSR_SVC;
+
+	void update(bool isArm9);
+};
+
 template<typename Type>
 struct buttonstruct {
 	union {
@@ -292,6 +335,14 @@ struct NDSSystem
 
 	bool isInVblank() const { return VCount >= 192; } 
 	bool isIn3dVblank() const { return VCount >= 192 && VCount<215; } 
+
+	const int Tracelist_Length = 1000000;
+	cpustate Tracelist[1000000][2];
+	int traclist_ptr = 0;
+	int runmoretrace = 0;
+	int commands = 0;
+
+	void vcd_file_last();
 };
 
 extern NDSSystem nds;

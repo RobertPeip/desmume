@@ -148,6 +148,7 @@ bool DDRAW::OK()
 	if (!handle) return false;
 	if (!surface.primary) return false;
 	if (!surface.back) return false;
+	return false;
 	return true;
 }
 
