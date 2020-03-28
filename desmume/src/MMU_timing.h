@@ -88,7 +88,7 @@ public:
 	FORCEINLINE bool Cached(u32 addr)
 	{
 		u32 blockMasked = addr & BLOCKMASK;
-		if(blockMasked == m_cacheCache)
+		if(blockMasked == m_cacheCache) // this is a fast cache check
 			return true;
 		else
 			return this->CachedInternal<DIR>(addr, blockMasked);

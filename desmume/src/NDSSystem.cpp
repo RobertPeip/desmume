@@ -2078,6 +2078,11 @@ void NDS_exec(s32 nb)
 				}
 			#endif
 
+		    if (nds.traclist_ptr == 1083)
+		    {
+		    	int stop = 1;
+		    }
+
 #ifdef HAVE_JIT
 			std::pair<s32,s32> arm9arm7 = CommonSettings.use_jit
 				? armInnerLoop<true,true,true>(nds_timer_base,s32next,arm9,arm7)
@@ -2119,10 +2124,10 @@ void NDS_exec(s32 nb)
 
 
 			// debug out
-			if (nds.commands == 0000001 && nds.runmoretrace == 0)
+			if (nds.commands == 0000000 && nds.runmoretrace == 0)
 			{
 				nds.traclist_ptr = 0;
-				nds.runmoretrace = 100000;
+				nds.runmoretrace = 2000;
 			}
 
 			if (nds.runmoretrace > 0)
@@ -2133,6 +2138,7 @@ void NDS_exec(s32 nb)
 				nds.runmoretrace = nds.runmoretrace - 1;
 				if (nds.runmoretrace == 0)
 				{
+					nds.runmoretrace = -1;
 					nds.vcd_file_last();
 				}
 			}
@@ -3272,7 +3278,6 @@ void cpustate::update(bool isArm9)
 		procnum = 1;
 	}
 
-	int saveticks = newticks;
 	this->busprefetch = 0; // (uint)BusTiming.busPrefetchCount;
 
 	for (int i = 0; i < 16; i++)
@@ -3286,7 +3291,7 @@ void cpustate::update(bool isArm9)
 	flag_V_Overflow = cpustruct.CPSR.bits.V;
 	
 	this->thumbmode = cpustruct.CPSR.bits.T;
-	this->opcode = cpustruct.instruction;
+	this->opcode = cpustruct.lastinstruction;
 	this->armmode = cpustruct.CPSR.bits.mode;
 
 	this->irpdisable = cpustruct.CPSR.bits.Q;
@@ -3306,7 +3311,7 @@ void cpustate::update(bool isArm9)
 	//this->memory01 = Memory.read_dword(0x04000200); // IME/IF
 	
 	this->memory01 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000000); // display settings
-	this->memory02 = 0;// (UInt32)SoundDMA.soundDMAs[0].fifo.Count;
+	this->memory02 = 0; // (UInt32)SoundDMA.soundDMAs[0].fifo.Count;
 	this->memory03 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000004); // vcount
 	
 	this->debug_dmatranfers = 0; // DMA.debug_dmatranfers;
@@ -3322,12 +3327,19 @@ void cpustate::update(bool isArm9)
 	SPSR_IRQ = cpustruct.SPSR_irq.val;
 	SPSR_SVC = cpustruct.SPSR_svc.val;
 
-	newticks = saveticks;
+	if (isArm9)
+	{
+		newticks = nds_arm9_timer;
+	}
+	else
+	{
+		newticks = nds_arm7_timer;
+	}
 }
 
 void NDSSystem::vcd_file_last()
 {
-	FILE* file = fopen("..\\..\\..\\..\\debug.vcd", "w");
+	FILE* file = fopen("C:\\Projekte\\DS\\DSFPGApp\\debug_desmume.vcd", "w");
 
 	fprintf(file, "$date Feb 29, 2134 $end\n");
 	fprintf(file, "$version 0.1 $end\n");
@@ -3440,7 +3452,7 @@ void NDSSystem::vcd_file_last()
 			if (i == 0 || state.memory02 != laststate.memory02) fprintf(file, "b%s %dM2\n", std::bitset<32>(state.memory02).to_string().c_str(), cpuindex);
 			if (i == 0 || state.memory03 != laststate.memory03) fprintf(file, "b%s %dM3\n", std::bitset<32>(state.memory03).to_string().c_str(), cpuindex);
 
-			if (i == 0 || state.debug_dmatranfers != laststate.debug_dmatranfers) fprintf(file, "b%s DMA\n", std::bitset<32>(state.debug_dmatranfers).to_string().c_str(), cpuindex);
+			//if (i == 0 || state.debug_dmatranfers != laststate.debug_dmatranfers) fprintf(file, "b%s DMA\n", std::bitset<32>(state.debug_dmatranfers).to_string().c_str(), cpuindex);
 
 			if (i == 0 || state.R16 != laststate.R16) fprintf(file, "b%s %dR16\n", std::bitset<32>(state.R16).to_string().c_str(), cpuindex);
 			if (i == 0 || state.R17 != laststate.R17) fprintf(file, "b%s %dR17\n", std::bitset<32>(state.R17).to_string().c_str(), cpuindex);

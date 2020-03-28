@@ -327,6 +327,8 @@ struct armcpu_t
 	
 	/** the ctrl interface */
 	armcpu_ctrl_iface ctrl_iface;
+
+	u32 lastinstruction;
 };
 
 int armcpu_new( armcpu_t *armcpu, u32 id);

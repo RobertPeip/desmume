@@ -5140,7 +5140,7 @@ u32 FASTCALL _MMU_ARM9_read32(u32 adr)
 			case REG_TM2CNTL :
 			case REG_TM3CNTL :
 				{
-					u32 hi = T1ReadWord(MMU.ARM9_REG, (adr + 2) & 0xFF);
+					u32 hi = T1ReadWord(MMU.ARM9_REG, (adr + 2) & 0x3FF);
 					return (hi<<16)|read_timer(ARMCPU_ARM9,(adr&0xF)>>2);
 				}	
 
@@ -5790,7 +5790,7 @@ u32 FASTCALL _MMU_ARM7_read32(u32 adr)
 			case REG_TM2CNTL :
 			case REG_TM3CNTL :
 				{
-					u32 hi = T1ReadWord(MMU.ARM9_REG, (adr + 2) & 0xFF);
+					u32 hi = T1ReadWord(MMU.ARM9_REG, (adr + 2) & 0x3FF);
 					return (hi<<16)|read_timer(ARMCPU_ARM9,(adr&0xF)>>2);
 				}	
 
