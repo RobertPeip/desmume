@@ -5582,12 +5582,15 @@ TEMPLATE static u32 FASTCALL  OP_STMDA(const u32 i)
 	u32 c = 0, b;
 	u32 start = cpu->R[REG_POS(i,16)];
 	
+	u32 timingadr = start;
+
 	for(b=0; b<16; b++)
 	{
 		if(BIT_N(i, 15-b))
 		{
 			WRITE32(cpu->mem_if->data, start, cpu->R[15-b]);
-			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(start);
+			timingadr += 4;
+			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(timingadr);
 			start -= 4;
 		}
 	}	
@@ -5599,13 +5602,16 @@ TEMPLATE static u32 FASTCALL  OP_STMDB(const u32 i)
 	u32 c = 0, b;
 	u32 start = cpu->R[REG_POS(i,16)];
 	
+	u32 timingadr = start;
+
 	for(b=0; b<16; b++)
 	{
 		if(BIT_N(i, 15-b))
 		{
 			start -= 4;
 			WRITE32(cpu->mem_if->data, start, cpu->R[15-b]);
-			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(start);
+			timingadr += 4;
+			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(timingadr);
 		}
 	}	
 	return MMU_aluMemCycles<PROCNUM>(1, c);
@@ -5653,12 +5659,15 @@ TEMPLATE static u32 FASTCALL  OP_STMDA_W(const u32 i)
 	u32 c = 0, b;
 	u32 start = cpu->R[REG_POS(i,16)];
 	
+	u32 timingadr = start;
+
 	for(b=0; b<16; b++)
 	{
 		if(BIT_N(i, 15-b))
 		{
 			WRITE32(cpu->mem_if->data, start, cpu->R[15-b]);
-			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(start);
+			timingadr += 4;
+			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(timingadr);
 			start -= 4;
 		}
 	}	
@@ -5672,13 +5681,16 @@ TEMPLATE static u32 FASTCALL  OP_STMDB_W(const u32 i)
 	u32 c = 0, b;
 	u32 start = cpu->R[REG_POS(i,16)];
 	
+	u32 timingadr = start;
+
 	for(b=0; b<16; b++)
 	{
 		if(BIT_N(i, 15-b))
 		{
 			start -= 4;
 			WRITE32(cpu->mem_if->data, start, cpu->R[15-b]);
-			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(start);
+			timingadr += 4;
+			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(timingadr);
 		}
 	}	
 	
@@ -5759,12 +5771,15 @@ TEMPLATE static u32 FASTCALL  OP_STMDA2(const u32 i)
 	
 	UNTESTEDOPCODELOG("Untested opcode: OP_STMDA2 \n");  
 	
+	u32 timingadr = start;
+
 	for(b=0; b<16; b++)
 	{
 		if(BIT_N(i, 15-b))
 		{
 			WRITE32(cpu->mem_if->data, start, cpu->R[15-b]);
-			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(start);
+			timingadr += 4;
+			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(timingadr);
 			start -= 4;
 		}
 	}	
@@ -5786,13 +5801,16 @@ TEMPLATE static u32 FASTCALL  OP_STMDB2(const u32 i)
 	start = cpu->R[REG_POS(i,16)];
 	oldmode = armcpu_switchMode(cpu, SYS);
 	
+	u32 timingadr = start;
+
 	for(b=0; b<16; b++)
 	{
 		if(BIT_N(i, 15-b))
 		{
 			start -= 4;
 			WRITE32(cpu->mem_if->data, start, cpu->R[15-b]);
-			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(start);
+			timingadr += 4;
+			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(timingadr);
 		}
 	}	
 	
@@ -5873,12 +5891,15 @@ TEMPLATE static u32 FASTCALL  OP_STMDA2_W(const u32 i)
 
 	 UNTESTEDOPCODELOG("Untested opcode: OP_STMDA2_W \n");
 	
+	u32 timingadr = start;
+
 	for(b=0; b<16; b++)
 	{
 		if(BIT_N(i, 15-b))
 		{
 			WRITE32(cpu->mem_if->data, start, cpu->R[15-b]);
-			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(start);
+			timingadr += 4;
+			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(timingadr);
 			start -= 4;
 		}
 	}	
@@ -5903,7 +5924,9 @@ TEMPLATE static u32 FASTCALL  OP_STMDB2_W(const u32 i)
 	start = cpu->R[REG_POS(i,16)];
 	oldmode = armcpu_switchMode(cpu, SYS);
 
-	UNTESTEDOPCODELOG("Untested opcode: OP_STMDB2_W \n");   
+	UNTESTEDOPCODELOG("Untested opcode: OP_STMDB2_W \n");
+
+	u32 timingadr = start;
 
 	for(b=0; b<16; b++)
 	{
@@ -5911,7 +5934,8 @@ TEMPLATE static u32 FASTCALL  OP_STMDB2_W(const u32 i)
 		{
 			start -= 4;
 			WRITE32(cpu->mem_if->data, start, cpu->R[15-b]);
-			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(start);
+			timingadr += 4;
+			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(timingadr);
 		}
 	}	
 	

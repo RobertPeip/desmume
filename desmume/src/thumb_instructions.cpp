@@ -836,17 +836,20 @@ TEMPLATE static  u32 FASTCALL OP_PUSH(const u32 i)
 {
 	u32 adr = cpu->R[13] - 4;
 	u32 c = 0, j;
+
+	u32 timingadr = adr;
 	
 	for(j = 0; j<8; j++)
 		if(BIT_N(i, 7-j))
 		{
 			WRITE32(cpu->mem_if->data, adr, cpu->R[7-j]);
-			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(adr);
+			timingadr += 4;
+			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(timingadr);
 			adr -= 4;
 		}
 	cpu->R[13] = adr + 4;
 	
-	 return MMU_aluMemCycles<PROCNUM>(3, c);
+	 return MMU_aluMemCycles<PROCNUM>(1, c); // 1 cycle instead of 4 -> same as normal block write
 }
 
 TEMPLATE static  u32 FASTCALL OP_PUSH_LR(const u32 i)
@@ -856,18 +859,22 @@ TEMPLATE static  u32 FASTCALL OP_PUSH_LR(const u32 i)
 	
 	WRITE32(cpu->mem_if->data, adr, cpu->R[14]);
 	c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(adr);
+
+	u32 timingadr = adr;
+
 	adr -= 4;
-		
+
 	for(j = 0; j<8; j++)
 		if(BIT_N(i, 7-j))
 		{
 			WRITE32(cpu->mem_if->data, adr, cpu->R[7-j]);
-			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(adr);
+			timingadr += 4;
+			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(timingadr); // generate sequential timing!
 			adr -= 4;
 		}
 	cpu->R[13] = adr + 4;
 	
-	 return MMU_aluMemCycles<PROCNUM>(4, c);
+	 return MMU_aluMemCycles<PROCNUM>(1, c); // 1 cycle instead of 4 -> same as normal block write
 }
 
 TEMPLATE static  u32 FASTCALL OP_POP(const u32 i)
@@ -1106,7 +1113,7 @@ TEMPLATE static  u32 FASTCALL OP_BL_11(const u32 i)
 	cpu->R[15] = (cpu->R[14] + ((i&0x7FF)<<1));
 	cpu->R[14] = cpu->next_instruction | 1;
 	cpu->next_instruction = cpu->R[15];
-	return 4;
+	return 3;
 }
 
 TEMPLATE static  u32 FASTCALL OP_BX_THUMB(const u32 i)

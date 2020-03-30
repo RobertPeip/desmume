@@ -440,6 +440,7 @@ FORCEINLINE static u32 armcpu_prefetch()
 	armcpu->instruct_adr = curInstruction;
 	armcpu->next_instruction = curInstruction + 2;
 	armcpu->R[15] = curInstruction + 4;
+	armcpu->lastinstruction = armcpu->instruction;
 	armcpu->instruction = _MMU_read16<PROCNUM, MMU_AT_CODE>(curInstruction);
 //#endif
 

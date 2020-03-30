@@ -2078,7 +2078,7 @@ void NDS_exec(s32 nb)
 				}
 			#endif
 
-		    if (nds.traclist_ptr == 1083)
+		    if (nds.traclist_ptr == 6545)
 		    {
 		    	int stop = 1;
 		    }
@@ -2127,7 +2127,7 @@ void NDS_exec(s32 nb)
 			if (nds.commands == 0000000 && nds.runmoretrace == 0)
 			{
 				nds.traclist_ptr = 0;
-				nds.runmoretrace = 2000;
+				nds.runmoretrace = 10000;
 			}
 
 			if (nds.runmoretrace > 0)
@@ -3294,7 +3294,7 @@ void cpustate::update(bool isArm9)
 	this->opcode = cpustruct.lastinstruction;
 	this->armmode = cpustruct.CPSR.bits.mode;
 
-	this->irpdisable = cpustruct.CPSR.bits.Q;
+	this->irpdisable = cpustruct.CPSR.bits.I;
 
 	//this->IF_intern = IRP.IRP_Flags;
 	//irp_wait = 0; //irpwait;
