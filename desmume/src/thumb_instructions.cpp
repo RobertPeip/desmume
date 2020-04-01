@@ -1090,7 +1090,7 @@ TEMPLATE static  u32 FASTCALL OP_B_UNCOND(const u32 i)
 
 	cpu->R[15] += (SIGNEEXT_IMM11(i)<<1);
 	cpu->next_instruction = cpu->R[15];
-	return 1;
+	return 3;
 }
  
 TEMPLATE static  u32 FASTCALL OP_BLX(const u32 i)

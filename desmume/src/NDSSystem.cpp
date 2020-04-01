@@ -2078,7 +2078,7 @@ void NDS_exec(s32 nb)
 				}
 			#endif
 
-		    if (nds.traclist_ptr == 6545)
+		    if (nds.traclist_ptr == 6443)
 		    {
 		    	int stop = 1;
 		    }
@@ -2127,7 +2127,7 @@ void NDS_exec(s32 nb)
 			if (nds.commands == 0000000 && nds.runmoretrace == 0)
 			{
 				nds.traclist_ptr = 0;
-				nds.runmoretrace = 10000;
+				nds.runmoretrace = 50000;
 			}
 
 			if (nds.runmoretrace > 0)
@@ -3296,7 +3296,7 @@ void cpustate::update(bool isArm9)
 
 	this->irpdisable = cpustruct.CPSR.bits.I;
 
-	//this->IF_intern = IRP.IRP_Flags;
+	this->IF_intern = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000214);
 	//irp_wait = 0; //irpwait;
 	//
 	this->timer0 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000100); // timer 0
@@ -3311,7 +3311,7 @@ void cpustate::update(bool isArm9)
 	//this->memory01 = Memory.read_dword(0x04000200); // IME/IF
 	
 	this->memory01 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000000); // display settings
-	this->memory02 = 0; // (UInt32)SoundDMA.soundDMAs[0].fifo.Count;
+	this->memory02 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000184); // (UInt32)SoundDMA.soundDMAs[0].fifo.Count;
 	this->memory03 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000004); // vcount
 	
 	this->debug_dmatranfers = 0; // DMA.debug_dmatranfers;
@@ -3440,7 +3440,7 @@ void NDSSystem::vcd_file_last()
 			if (i == 0 || state.thumbmode != laststate.thumbmode) fprintf(file, "%s%dAT\n", std::bitset<1>(state.thumbmode).to_string().c_str(), cpuindex);
 			if (i == 0 || state.armmode != laststate.armmode) fprintf(file, "b%s %dM\n", std::bitset<8>(state.armmode).to_string().c_str(), cpuindex);
 			if (i == 0 || state.irpdisable != laststate.irpdisable) fprintf(file, "%s%dI\n", std::bitset<1>(state.irpdisable).to_string().c_str(), cpuindex);
-			if (i == 0 || state.IF_intern != laststate.IF_intern) fprintf(file, "b%s %dIF\n", std::bitset<16>(state.IF_intern).to_string().c_str(), cpuindex);
+			if (i == 0 || state.IF_intern != laststate.IF_intern) fprintf(file, "b%s %dIF\n", std::bitset<32>(state.IF_intern).to_string().c_str(), cpuindex);
 			if (i == 0 || state.irp_wait != laststate.irp_wait) fprintf(file, "b%s %dIW\n", std::bitset<8>(state.irp_wait).to_string().c_str(), cpuindex);
 
 			if (i == 0 || state.timer0 != laststate.timer0) fprintf(file, "b%s %dT0\n", std::bitset<32>(state.timer0).to_string().c_str(), cpuindex);
