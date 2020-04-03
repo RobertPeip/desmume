@@ -140,10 +140,6 @@ private:
 			{
 				// found it, already allocated
 				m_cacheCache = blockMasked;
-				if (m_cacheCache == 0x00000200)
-				{
-					int b = 1;
-				}
 				return true;
 			}
 		if(DIR == MMU_AD_READ)

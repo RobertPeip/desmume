@@ -1953,15 +1953,15 @@ static /*donotinline*/ std::pair<s32,s32> armInnerLoop(
 				s32 temp = arm7;
 				arm7 = min(s32next, arm7 + kIrqWait);
 				nds.idleCycles[1] += arm7-temp;
-				if(arm7 == s32next)
-				{
-					nds_timer = nds_timer_base + minarmtime<doarm9,false>(arm9,arm7);
-#ifdef HAVE_JIT
-					return armInnerLoop<doarm9,false,jit>(nds_timer_base, s32next, arm9, arm7);
-#else
-					return armInnerLoop<doarm9,false>(nds_timer_base, s32next, arm9, arm7);
-#endif
-				}
+				//if(arm7 == s32next)
+				//{
+				//	nds_timer = nds_timer_base + minarmtime<doarm9,false>(arm9,arm7);
+#ifdef HAVE_JIT	//
+				//	return armInnerLoop<doarm9,false,jit>(nds_timer_base, s32next, arm9, arm7);
+#else			//
+				//	return armInnerLoop<doarm9,false>(nds_timer_base, s32next, arm9, arm7);
+#endif			//
+				//}
 			}
 		}
 
@@ -2078,7 +2078,7 @@ void NDS_exec(s32 nb)
 				}
 			#endif
 
-		    if (nds.traclist_ptr == 6443)
+		    if (nds.traclist_ptr == 33625)
 		    {
 		    	int stop = 1;
 		    }
@@ -2127,7 +2127,7 @@ void NDS_exec(s32 nb)
 			if (nds.commands == 0000000 && nds.runmoretrace == 0)
 			{
 				nds.traclist_ptr = 0;
-				nds.runmoretrace = 50000;
+				nds.runmoretrace = 100000;
 			}
 
 			if (nds.runmoretrace > 0)
