@@ -341,6 +341,7 @@ struct NDSSystem
 	int traclist_ptr = 0;
 	int runmoretrace = 0;
 	int commands = 0;
+	int dma_transfers = 0;
 
 	void vcd_file_last();
 };

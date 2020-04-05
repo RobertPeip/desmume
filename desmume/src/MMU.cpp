@@ -2324,6 +2324,7 @@ void DmaController::doCopy()
 			time_elapsed += _MMU_accesstime<PROCNUM,MMU_AT_DMA,32,MMU_AD_WRITE,TRUE>(dst,true);
 			u32 temp = _MMU_read32(procnum,MMU_AT_DMA,src);
 			_MMU_write32(procnum,MMU_AT_DMA,dst, temp);
+			nds.dma_transfers++;
 			dst += dstinc;
 			src += srcinc;
 		}
@@ -2334,6 +2335,7 @@ void DmaController::doCopy()
 			time_elapsed += _MMU_accesstime<PROCNUM,MMU_AT_DMA,16,MMU_AD_WRITE,TRUE>(dst,true);
 			u16 temp = _MMU_read16(procnum,MMU_AT_DMA,src);
 			_MMU_write16(procnum,MMU_AT_DMA,dst, temp);
+			nds.dma_transfers++;
 			dst += dstinc;
 			src += srcinc;
 		}
@@ -5790,8 +5792,8 @@ u32 FASTCALL _MMU_ARM7_read32(u32 adr)
 			case REG_TM2CNTL :
 			case REG_TM3CNTL :
 				{
-					u32 hi = T1ReadWord(MMU.ARM9_REG, (adr + 2) & 0x3FF);
-					return (hi<<16)|read_timer(ARMCPU_ARM9,(adr&0xF)>>2);
+					u32 hi = T1ReadWord(MMU.ARM7_REG, (adr + 2) & 0x3FF);
+					return (hi<<16)|read_timer(ARMCPU_ARM7,(adr&0xF)>>2);
 				}	
 
 			//case REG_GCROMCTRL:

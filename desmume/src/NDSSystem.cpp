@@ -2078,7 +2078,7 @@ void NDS_exec(s32 nb)
 				}
 			#endif
 
-		    if (nds.traclist_ptr == 33625)
+		    if (nds.traclist_ptr == 254146)
 		    {
 		    	int stop = 1;
 		    }
@@ -2124,10 +2124,10 @@ void NDS_exec(s32 nb)
 
 
 			// debug out
-			if (nds.commands == 0000000 && nds.runmoretrace == 0)
+			if (nds.commands == 1000000 && nds.runmoretrace == 0)
 			{
 				nds.traclist_ptr = 0;
-				nds.runmoretrace = 100000;
+				nds.runmoretrace = 260000;
 			}
 
 			if (nds.runmoretrace > 0)
@@ -3311,10 +3311,10 @@ void cpustate::update(bool isArm9)
 	//this->memory01 = Memory.read_dword(0x04000200); // IME/IF
 	
 	this->memory01 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000000); // display settings
-	this->memory02 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000184); // (UInt32)SoundDMA.soundDMAs[0].fifo.Count;
+	this->memory02 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000204); // (UInt32)SoundDMA.soundDMAs[0].fifo.Count;
 	this->memory03 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000004); // vcount
 	
-	this->debug_dmatranfers = 0; // DMA.debug_dmatranfers;
+	this->debug_dmatranfers = nds.dma_transfers;
 	
 	R16 = cpustruct.CPSR.val;
 	R17 = cpustruct.SPSR.val;
@@ -3482,10 +3482,10 @@ void NDSSystem::vcd_file_last()
 			if (i == 0 || state.memory02 != laststate.memory02) fprintf(file, "b%s %dM2\n", std::bitset<32>(state.memory02).to_string().c_str(), cpuindex);
 			if (i == 0 || state.memory03 != laststate.memory03) fprintf(file, "b%s %dM3\n", std::bitset<32>(state.memory03).to_string().c_str(), cpuindex);
 
-			//if (i == 0 || state.debug_dmatranfers != laststate.debug_dmatranfers) fprintf(file, "b%s DMA\n", std::bitset<32>(state.debug_dmatranfers).to_string().c_str(), cpuindex);
+			if (i == 0 || state.debug_dmatranfers != laststate.debug_dmatranfers) fprintf(file, "b%s %dDMA\n", std::bitset<32>(state.debug_dmatranfers).to_string().c_str(), cpuindex);
 
 			if (i == 0 || state.R16 != laststate.R16) fprintf(file, "b%s %dR16\n", std::bitset<32>(state.R16).to_string().c_str(), cpuindex);
-			if (i == 0 || state.R17 != laststate.R17) fprintf(file, "b%s %dR17\n", std::bitset<32>(state.R17).to_string().c_str(), cpuindex);
+			//if (i == 0 || state.R17 != laststate.R17) fprintf(file, "b%s %dR17\n", std::bitset<32>(state.R17).to_string().c_str(), cpuindex);
 			if (i == 0 || state.R13_USR != laststate.R13_USR) fprintf(file, "b%s %dR13u\n", std::bitset<32>(state.R13_USR).to_string().c_str(), cpuindex);
 			if (i == 0 || state.R14_USR != laststate.R14_USR) fprintf(file, "b%s %dR14u\n", std::bitset<32>(state.R14_USR).to_string().c_str(), cpuindex);
 			if (i == 0 || state.R13_IRQ != laststate.R13_IRQ) fprintf(file, "b%s %dR13i\n", std::bitset<32>(state.R13_IRQ).to_string().c_str(), cpuindex);
