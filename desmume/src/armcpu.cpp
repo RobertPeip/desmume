@@ -447,7 +447,7 @@ FORCEINLINE static u32 armcpu_prefetch()
 	if(PROCNUM==0)
 	{
 		// arm9 fetches 2 instructions at a time in thumb mode
-		if(!(curInstruction == armcpu->instruct_adr + 2 && (curInstruction & 2)))
+		if(!(curInstruction == armcpu->instruct_adr + 2 && (curInstruction & 2))) // armcpu->instruct_adr was set to curInstruction few lines above, so x cannot be x + 2
 			return MMU_codeFetchCycles<PROCNUM,32>(curInstruction);
 		else
 			return 0;

@@ -5583,6 +5583,13 @@ TEMPLATE static u32 FASTCALL  OP_STMDA(const u32 i)
 	u32 start = cpu->R[REG_POS(i,16)];
 	
 	u32 timingadr = start;
+	for (b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
+	}
 
 	for(b=0; b<16; b++)
 	{
@@ -5603,6 +5610,13 @@ TEMPLATE static u32 FASTCALL  OP_STMDB(const u32 i)
 	u32 start = cpu->R[REG_POS(i,16)];
 	
 	u32 timingadr = start;
+	for (b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
+	}
 
 	for(b=0; b<16; b++)
 	{
@@ -5660,6 +5674,13 @@ TEMPLATE static u32 FASTCALL  OP_STMDA_W(const u32 i)
 	u32 start = cpu->R[REG_POS(i,16)];
 	
 	u32 timingadr = start;
+	for (b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
+	}
 
 	for(b=0; b<16; b++)
 	{
@@ -5682,6 +5703,13 @@ TEMPLATE static u32 FASTCALL  OP_STMDB_W(const u32 i)
 	u32 start = cpu->R[REG_POS(i,16)];
 	
 	u32 timingadr = start;
+	for (b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
+	}
 
 	for(b=0; b<16; b++)
 	{
@@ -5772,6 +5800,13 @@ TEMPLATE static u32 FASTCALL  OP_STMDA2(const u32 i)
 	UNTESTEDOPCODELOG("Untested opcode: OP_STMDA2 \n");  
 	
 	u32 timingadr = start;
+	for (b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
+	}
 
 	for(b=0; b<16; b++)
 	{
@@ -5802,6 +5837,13 @@ TEMPLATE static u32 FASTCALL  OP_STMDB2(const u32 i)
 	oldmode = armcpu_switchMode(cpu, SYS);
 	
 	u32 timingadr = start;
+	for (b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
+	}
 
 	for(b=0; b<16; b++)
 	{
@@ -5892,6 +5934,13 @@ TEMPLATE static u32 FASTCALL  OP_STMDA2_W(const u32 i)
 	 UNTESTEDOPCODELOG("Untested opcode: OP_STMDA2_W \n");
 	
 	u32 timingadr = start;
+	for (b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
+	}
 
 	for(b=0; b<16; b++)
 	{
@@ -5927,6 +5976,13 @@ TEMPLATE static u32 FASTCALL  OP_STMDB2_W(const u32 i)
 	UNTESTEDOPCODELOG("Untested opcode: OP_STMDB2_W \n");
 
 	u32 timingadr = start;
+	for (b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
+	}
 
 	for(b=0; b<16; b++)
 	{

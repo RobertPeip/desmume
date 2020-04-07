@@ -838,6 +838,13 @@ TEMPLATE static  u32 FASTCALL OP_PUSH(const u32 i)
 	u32 c = 0, j;
 
 	u32 timingadr = adr;
+	for (j = 0; j < 8; j++)
+	{
+		if (BIT_N(i, 7 - j))
+		{
+			timingadr -= 4;
+		}
+	}
 	
 	for(j = 0; j<8; j++)
 		if(BIT_N(i, 7-j))
@@ -856,11 +863,18 @@ TEMPLATE static  u32 FASTCALL OP_PUSH_LR(const u32 i)
 {
 	u32 adr = cpu->R[13] - 4;
 	u32 c = 0, j;
-	
+
 	WRITE32(cpu->mem_if->data, adr, cpu->R[14]);
-	c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(adr);
 
 	u32 timingadr = adr;
+	for (j = 0; j < 8; j++)
+	{
+		if (BIT_N(i, 7 - j))
+		{
+			timingadr -= 4;
+		}
+	}
+	c += MMU_memAccessCycles<PROCNUM, 32, MMU_AD_WRITE>(timingadr);
 
 	adr -= 4;
 
@@ -959,7 +973,7 @@ TEMPLATE static  u32 FASTCALL OP_STMIA_THUMB(const u32 i)
 		 printf("STMIA with Empty Rlist\n");
 
 	cpu->R[REG_NUM(i, 8)] = adr;
-	return MMU_aluMemCycles<PROCNUM>(2, c);
+	return MMU_aluMemCycles<PROCNUM>(1, c);
 }
 
 TEMPLATE static  u32 FASTCALL OP_LDMIA_THUMB(const u32 i)
@@ -992,7 +1006,7 @@ TEMPLATE static  u32 FASTCALL OP_LDMIA_THUMB(const u32 i)
 	if (!BIT_N(i, regIndex))
 		cpu->R[regIndex] = adr;
    
-	return MMU_aluMemCycles<PROCNUM>(3, c);
+	return MMU_aluMemCycles<PROCNUM>(2, c);
 }
 
 //-----------------------------------------------------------------------------
