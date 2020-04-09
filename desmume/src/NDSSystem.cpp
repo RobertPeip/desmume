@@ -2078,7 +2078,7 @@ void NDS_exec(s32 nb)
 				}
 			#endif
 
-		    if (nds.traclist_ptr == 254146)
+		    if (nds.traclist_ptr == 258020)
 		    {
 		    	int stop = 1;
 		    }
@@ -3289,6 +3289,7 @@ void cpustate::update(bool isArm9)
 	flag_Carry = cpustruct.CPSR.bits.C;
 	flag_Zero = cpustruct.CPSR.bits.Z;
 	flag_V_Overflow = cpustruct.CPSR.bits.V;
+	flag_Q = cpustruct.CPSR.bits.Q;
 	
 	this->thumbmode = cpustruct.CPSR.bits.T;
 	this->opcode = cpustruct.lastinstruction;
@@ -3311,7 +3312,7 @@ void cpustate::update(bool isArm9)
 	//this->memory01 = Memory.read_dword(0x04000200); // IME/IF
 	
 	this->memory01 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000000); // display settings
-	this->memory02 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000204); // (UInt32)SoundDMA.soundDMAs[0].fifo.Count;
+	this->memory02 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0xFFFF0008); // (UInt32)SoundDMA.soundDMAs[0].fifo.Count;
 	this->memory03 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000004); // vcount
 	
 	this->debug_dmatranfers = nds.dma_transfers;
@@ -3387,6 +3388,7 @@ void NDSSystem::vcd_file_last()
 		fprintf(file, "$var wire 1 %dFC cpu%d_Flag_Carry $end\n", cpuindex, cpuindex);
 		fprintf(file, "$var wire 1 %dFZ cpu%d_Flag_Zero $end\n", cpuindex, cpuindex);
 		fprintf(file, "$var wire 1 %dFV cpu%d_Flag_Overflow $end\n", cpuindex, cpuindex);
+		fprintf(file, "$var wire 1 %dFQ cpu%d_Flag_Q $end\n", cpuindex, cpuindex);
 		fprintf(file, "$var wire 16 %dTK cpu%d_Ticks $end\n", cpuindex, cpuindex);
 		fprintf(file, "$var wire 8 %dPF cpu%d_Prefetch $end\n", cpuindex, cpuindex);
 		fprintf(file, "$var wire 1 %dAT cpu%d_isThumb $end\n", cpuindex, cpuindex);
@@ -3454,10 +3456,11 @@ void NDSSystem::vcd_file_last()
 				fprintf(file, " %dO\n", cpuindex);
 			}
 
-			if (i == 0 || state.flag_Negative != laststate.flag_Negative) fprintf(file, "%s%dFN\n", std::bitset<1>(state.flag_Negative).to_string().c_str(), cpuindex);
-			if (i == 0 || state.flag_Carry != laststate.flag_Carry) fprintf(file, "%s%dFC\n", std::bitset<1>(state.flag_Carry).to_string().c_str(), cpuindex);
-			if (i == 0 || state.flag_Zero != laststate.flag_Zero) fprintf(file, "%s%dFZ\n", std::bitset<1>(state.flag_Zero).to_string().c_str(), cpuindex);
-			if (i == 0 || state.flag_V_Overflow != laststate.flag_V_Overflow) fprintf(file, "%s%dFV\n", std::bitset<1>(state.flag_V_Overflow).to_string().c_str(), cpuindex);
+			if (i == 0 || state.flag_Negative != laststate.flag_Negative) fprintf(file, "b%s%dFN\n", std::bitset<1>(state.flag_Negative).to_string().c_str(), cpuindex);
+			if (i == 0 || state.flag_Carry != laststate.flag_Carry) fprintf(file, "b%s%dFC\n", std::bitset<1>(state.flag_Carry).to_string().c_str(), cpuindex);
+			if (i == 0 || state.flag_Zero != laststate.flag_Zero) fprintf(file, "b%s%dFZ\n", std::bitset<1>(state.flag_Zero).to_string().c_str(), cpuindex);
+			if (i == 0 || state.flag_V_Overflow != laststate.flag_V_Overflow) fprintf(file, "b%s%dFV\n", std::bitset<1>(state.flag_V_Overflow).to_string().c_str(), cpuindex);
+			if (i == 0 || state.flag_Q != laststate.flag_Q) fprintf(file, "b%s%dFQ\n", std::bitset<1>(state.flag_Q).to_string().c_str(), cpuindex);
 
 			if (i == 0 || state.newticks != laststate.newticks)
 			{

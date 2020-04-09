@@ -43,6 +43,7 @@ public:
 	bool flag_Carry;
 	bool flag_Zero;
 	bool flag_V_Overflow;
+	bool flag_Q;
 	INT32 newticks;
 	UINT32 busprefetch;
 	char thumbmode;
