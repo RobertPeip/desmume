@@ -49,7 +49,7 @@ public:
 	char thumbmode;
 	char armmode;
 	char irpdisable;
-	UINT16 IF_intern;
+	UINT32 IF_intern;
 	int irp_wait;
 
 	UINT32 timer0;
