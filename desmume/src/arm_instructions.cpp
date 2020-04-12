@@ -5717,8 +5717,8 @@ TEMPLATE static u32 FASTCALL  OP_STMDB_W(const u32 i)
 		{
 			start -= 4;
 			WRITE32(cpu->mem_if->data, start, cpu->R[15-b]);
-			timingadr += 4;
 			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(timingadr);
+			timingadr += 4;
 		}
 	}	
 	

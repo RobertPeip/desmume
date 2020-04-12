@@ -2078,7 +2078,8 @@ void NDS_exec(s32 nb)
 				}
 			#endif
 
-		    if (nds.traclist_ptr == 258020)
+		    if (nds.traclist_ptr == 29724)
+			//if (nds.commands == 1)
 		    {
 		    	int stop = 1;
 		    }
@@ -2124,10 +2125,10 @@ void NDS_exec(s32 nb)
 
 
 			// debug out
-			if (nds.commands == 1000000 && nds.runmoretrace == 0)
+			if (nds.commands == 1300000 && nds.runmoretrace == 0)
 			{
 				nds.traclist_ptr = 0;
-				nds.runmoretrace = 260000;
+				nds.runmoretrace = 200000;
 			}
 
 			if (nds.runmoretrace > 0)
@@ -2564,18 +2565,19 @@ bool NDS_FakeBoot()
 	const u32 kCommandline = 0x027E0000;
 	//const u32 kCommandline = 0x027FFF84;
 
+// commented out commandline homebrew stuff
 	//homebrew-related stuff.
 	//its safe to put things in this position.. apparently nothing important is here.
 	//however, some games could be checking them as an anti-desmume measure, so we might have to control it with slot-1 settings to suggest booting a homebrew app
 	//perhaps we could automatically boot homebrew to an R4-like device.
-	_MMU_write32<ARMCPU_ARM9>(0x02FFFE70, 0x5f617267);
-	_MMU_write32<ARMCPU_ARM9>(0x02FFFE74, kCommandline); //(commandline starts here)
-	_MMU_write32<ARMCPU_ARM9>(0x02FFFE78, rompath.size()+1);
+//	_MMU_write32<ARMCPU_ARM9>(0x02FFFE70, 0x5f617267);
+//	_MMU_write32<ARMCPU_ARM9>(0x02FFFE74, kCommandline); //(commandline starts here)
+//	_MMU_write32<ARMCPU_ARM9>(0x02FFFE78, rompath.size()+1);
 	//0x027FFF7C (argc)
 	//0x027FFF80 (argv)
-	for(size_t i=0;i<rompath.size();i++)
-		_MMU_write08<ARMCPU_ARM9>(kCommandline+i, rompath[i]);
-	_MMU_write08<ARMCPU_ARM9>(kCommandline+rompath.size(), 0);
+//	for(size_t i=0;i<rompath.size();i++)
+//		_MMU_write08<ARMCPU_ARM9>(kCommandline+i, rompath[i]);
+//	_MMU_write08<ARMCPU_ARM9>(kCommandline+rompath.size(), 0);
 	//--------------------------------
 
 	//Call the card post_fakeboot hook to perform additional initialization
@@ -3312,21 +3314,21 @@ void cpustate::update(bool isArm9)
 	//this->memory01 = Memory.read_dword(0x04000200); // IME/IF
 	
 	this->memory01 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000000); // display settings
-	this->memory02 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0xFFFF0008); // (UInt32)SoundDMA.soundDMAs[0].fifo.Count;
+	this->memory02 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x038094e4); // (UInt32)SoundDMA.soundDMAs[0].fifo.Count;
 	this->memory03 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000004); // vcount
 	
 	this->debug_dmatranfers = nds.dma_transfers;
 	
 	R16 = cpustruct.CPSR.val;
 	R17 = cpustruct.SPSR.val;
-	R13_USR = cpustruct.R13_usr;
-	R14_USR = cpustruct.R14_usr;
-	R13_IRQ = cpustruct.R13_irq;
-	R14_IRQ = cpustruct.R14_irq;
-	R13_SVC = cpustruct.R13_svc;
-	R14_SVC = cpustruct.R14_svc;
-	SPSR_IRQ = cpustruct.SPSR_irq.val;
-	SPSR_SVC = cpustruct.SPSR_svc.val;
+	//R13_USR = cpustruct.R13_usr;
+	//R14_USR = cpustruct.R14_usr;
+	//R13_IRQ = cpustruct.R13_irq;
+	//R14_IRQ = cpustruct.R14_irq;
+	//R13_SVC = cpustruct.R13_svc;
+	//R14_SVC = cpustruct.R14_svc;
+	//SPSR_IRQ = cpustruct.SPSR_irq.val;
+	//SPSR_SVC = cpustruct.SPSR_svc.val;
 
 	if (isArm9)
 	{
