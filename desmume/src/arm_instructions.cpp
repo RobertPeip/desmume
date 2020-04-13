@@ -5546,15 +5546,34 @@ TEMPLATE static u32 FASTCALL  OP_LDMDB2_W(const u32 i)
 TEMPLATE static u32 FASTCALL OP_STMIA(const u32 i)
 {
 	u32 c = 0, b;
-	u32 start = cpu->R[REG_POS(i,16)];
+	int addresspos = REG_POS(i, 16);
+	u32 start = cpu->R[addresspos];
 	
+	bool first = true;
+	u32 endaddress = start;
+	for (b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, b))
+		{
+			endaddress += 4;
+		}
+	}
+
 	for(b=0; b<16; b++)
 	{
 		if(BIT_N(i, b))
 		{
-			WRITE32(cpu->mem_if->data, start, cpu->R[b]);
+			if (!first && b == addresspos) // baseaddress register usually changed if written as second or later!
+			{
+				WRITE32(cpu->mem_if->data, start, endaddress);
+			}
+			else
+			{
+				WRITE32(cpu->mem_if->data, start, cpu->R[b]);
+			}
 			c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_WRITE>(start);
 			start += 4;
+			first = false;
 		}
 	}
 	return MMU_aluMemCycles<PROCNUM>(1, c);

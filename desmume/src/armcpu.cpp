@@ -549,6 +549,7 @@ BOOL armcpu_irqException(armcpu_t *armcpu)
 	//must retain invariant of having next instruction to be executed prefetched
 	//(yucky)
 	armcpu_prefetch(armcpu);
+	armcpu->lastinstruction = 0;
 
 	return TRUE;
 }

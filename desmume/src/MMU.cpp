@@ -1497,7 +1497,7 @@ void FASTCALL MMU_writeToSPIData(u16 val)
 		break;
 
 		case SPI_DEVICE_FIRMWARE:
-			if(baudrate != SPI_BAUDRATE_4MHZ)		// check SPI baudrate (must be 4mhz)
+			if (baudrate != SPI_BAUDRATE_4MHZ)		// check SPI baudrate (must be 4mhz)
 			{
 				printf("Wrong SPI baud rate for firmware access\n");
 				val = 0;
@@ -3767,6 +3767,12 @@ void FASTCALL _MMU_ARM9_write16(u32 adr, u16 val)
 				case REG_DISPA_DISPCNT+2:
 					T1WriteWord(MMU.ARM9_REG, 0x0002, val);
 					mainEngine->ParseReg_DISPCNT();
+					return;
+
+				case REG_DISPA_VCOUNT-2:
+					val &= 0xFFB8;
+					val |= (T1ReadWord(MMU.ARM9_REG, 0x0004) & 0x0047);
+					T1WriteWord(MMU.ARM9_REG, 0x0004, val);
 					return;
 					
 				case REG_DISPA_BG0CNT:
