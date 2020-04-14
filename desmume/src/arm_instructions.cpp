@@ -5563,7 +5563,7 @@ TEMPLATE static u32 FASTCALL OP_STMIA(const u32 i)
 	{
 		if(BIT_N(i, b))
 		{
-			if (!first && b == addresspos) // baseaddress register usually changed if written as second or later!
+			if (PROCNUM == 1 && !first && b == addresspos) // baseaddress register usually changed if written as second or later! - only for ArmV4
 			{
 				WRITE32(cpu->mem_if->data, start, endaddress);
 			}
