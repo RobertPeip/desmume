@@ -243,7 +243,6 @@ public:
 		return true;
 	}
 
-private:
 	u32 m_lastAddress;
 };
 

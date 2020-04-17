@@ -58,6 +58,7 @@
 #include "SPU.h"
 #include "wifi.h"
 #include "Database.h"
+#include "MMU_Timing.h"
 
 #ifdef GDB_STUB
 #include "gdbstub.h"
@@ -1604,7 +1605,7 @@ static void execHardware_hstart()
 		//obviously 192 is the right choice.
 		gfx3d_VBlankSignal();
 		//this isnt important for any known game, but it would be nice to prove it.
-		NDS_RescheduleGXFIFO(392*2);
+//        NDS_RescheduleGXFIFO(392*2);
 	}
 
 	//write the new vcount
@@ -2078,7 +2079,7 @@ void NDS_exec(s32 nb)
 				}
 			#endif
 
-		    if (nds.traclist_ptr == 29724)
+		    if (nds.traclist_ptr == 3674)
 			//if (nds.commands == 1)
 		    {
 		    	int stop = 1;
@@ -2125,10 +2126,10 @@ void NDS_exec(s32 nb)
 
 
 			// debug out
-			if (nds.commands == 1300000 && nds.runmoretrace == 0)
+			if (nds.commands == 900000 && nds.runmoretrace == 0)
 			{
 				nds.traclist_ptr = 0;
-				nds.runmoretrace = 200000;
+				nds.runmoretrace = 300000;
 			}
 
 			if (nds.runmoretrace > 0)
@@ -3314,7 +3315,15 @@ void cpustate::update(bool isArm9)
 	//this->memory01 = Memory.read_dword(0x04000200); // IME/IF
 	
 	this->memory01 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000000); // display settings
-	this->memory02 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x038094e4); // (UInt32)SoundDMA.soundDMAs[0].fifo.Count;
+	if (!isArm9)
+	{
+		this->memory02 = MMU_timing.arm7dataFetch.m_lastAddress;
+	}
+	else
+	{
+		this->memory02 = MMU_timing.arm9dataFetch.m_lastAddress;
+	}
+	//this->memory02 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x027ffce0);
 	this->memory03 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000004); // vcount
 	
 	this->debug_dmatranfers = nds.dma_transfers;

@@ -624,6 +624,7 @@ TEMPLATE static  u32 FASTCALL OP_MVN(const u32 i)
 TEMPLATE static  u32 FASTCALL OP_MUL_REG(const u32 i)
 {
 	u32 v = cpu->R[REG_NUM(i, 3)];
+	u32 rs = cpu->R[REG_NUM(i, 0)];
 
 	// FIXME:
 	//------ Rd = (Rm * Rd)[31:0]
@@ -638,9 +639,14 @@ TEMPLATE static  u32 FASTCALL OP_MUL_REG(const u32 i)
 	//In earlier versions of the architecture, the value of the C flag was UNPREDICTABLE
 	//after a MUL instruction.
 	
-	if (PROCNUM == 1)	// ARM4T 1S + mI, m = 3
-		return 4;
+	//if (PROCNUM == 1)	// ARM4T 1S + mI, m = 3
+	//	return 4;
 
+	v = rs;
+	if ((int)rs < 0)
+	{
+		rs = ~rs;
+	}
 	MUL_Mxx_END_THUMB(1);
 }
 
@@ -758,11 +764,12 @@ TEMPLATE static  u32 FASTCALL OP_LDR_IMM_OFF(const u32 i)
 {
 	u32 adr = cpu->R[REG_NUM(i, 3)] + ((i>>4)&0x7C);
 	u32 tempValue = READ32(cpu->mem_if->data, adr);
+	u32 oldaddr = adr;
 	adr = (adr&3)*8;
 	tempValue = (tempValue>>adr) | (tempValue<<(32-adr));
 	cpu->R[REG_NUM(i, 0)] = tempValue;
 		
-	return MMU_aluMemAccessCycles<PROCNUM,32,MMU_AD_READ>(3, adr);
+	return MMU_aluMemAccessCycles<PROCNUM,32,MMU_AD_READ>(3, oldaddr);
 }
 
 
@@ -778,11 +785,12 @@ TEMPLATE static  u32 FASTCALL OP_LDR_REG_OFF(const u32 i)
 {
 	u32 adr = (cpu->R[REG_NUM(i, 3)] + cpu->R[REG_NUM(i, 6)]);
 	u32 tempValue = READ32(cpu->mem_if->data, adr);
+	u32 oldaddr = adr;
 	adr = (adr&3)*8;
 	tempValue = (tempValue>>adr) | (tempValue<<(32-adr));
 	cpu->R[REG_NUM(i, 0)] = tempValue;
 			
-	return MMU_aluMemAccessCycles<PROCNUM,32,MMU_AD_READ>(3, adr);
+	return MMU_aluMemAccessCycles<PROCNUM,32,MMU_AD_READ>(3, oldaddr);
 }
 
 TEMPLATE static  u32 FASTCALL OP_STR_SPREL(const u32 i)
@@ -938,7 +946,7 @@ TEMPLATE static  u32 FASTCALL OP_POP_PC(const u32 i)
 	cpu->next_instruction = cpu->R[15];
 	
 	cpu->R[13] = adr + 4;
-	 return MMU_aluMemCycles<PROCNUM>(5, c);
+	 return MMU_aluMemCycles<PROCNUM>(4, c);
 }
 
 //-----------------------------------------------------------------------------

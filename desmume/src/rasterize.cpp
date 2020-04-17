@@ -1189,6 +1189,8 @@ void RasterizerUnit<RENDERER>::_shape_engine(const POLYGON_ATTR polyAttr, const 
 {
 	bool failure = false;
 
+	return; // disable 3D!
+
 	switch (type)
 	{
 		case 3: this->_sort_verts<ISFRONTFACING, 3>(); break;

@@ -337,8 +337,8 @@ struct NDSSystem
 	bool isInVblank() const { return VCount >= 192; } 
 	bool isIn3dVblank() const { return VCount >= 192 && VCount<215; } 
 
-	const int Tracelist_Length = 1000000;
-	cpustate Tracelist[1000000][2];
+	const int Tracelist_Length = 2000000;
+	cpustate Tracelist[2000000][2];
 	int traclist_ptr = 0;
 	int runmoretrace = 0;
 	int commands = 0;

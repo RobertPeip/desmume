@@ -256,7 +256,7 @@ void rtcInit()
 u16 rtcRead() 
 { 
 	//INFO("MMU Read RTC 0x%02X (%03i)\n", rtc._REG, rtc.bitsCount);
-	return (rtc._REG); 
+	return 0;// (rtc._REG);
 }
 
 void rtcWrite(u16 val)
