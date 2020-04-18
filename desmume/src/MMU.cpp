@@ -1876,7 +1876,7 @@ static INLINE u16 read_timer(int proc, int timerIndex)
 
 	//for unchained timers, we do not keep the timer up to date. its value will need to be calculated here
 	s32 diff = (s32)(nds.timerCycle[proc][timerIndex] - nds_timer);
-	assert(diff>=0);
+	//assert(diff>=0);
 	if(diff<0) 
 		printf("NEW EMULOOP BAD NEWS PLEASE REPORT: TIME READ DIFF < 0 (%d) (%d) (%d)\n",diff,timerIndex,MMU.timerMODE[proc][timerIndex]);
 	
@@ -5672,7 +5672,7 @@ u16 FASTCALL _MMU_ARM7_read16(u32 adr)
 
 	//wifi mac access
 	if ((adr & 0xFFFF0000) == 0x04800000)
-		return WIFI_read16(adr) ;
+		return 0; // WIFI_read16(adr);
 
 	u16 slot2_val;
 	if (slot2_read<ARMCPU_ARM7, u16>(adr, slot2_val))
@@ -5762,7 +5762,7 @@ u32 FASTCALL _MMU_ARM7_read32(u32 adr)
 
 	//wifi mac access
 	if ((adr & 0xFFFF0000) == 0x04800000)
-		return (WIFI_read16(adr) | (WIFI_read16(adr+2) << 16));
+		return 0; // (WIFI_read16(adr) | (WIFI_read16(adr + 2) << 16));
 
 	u32 slot2_val;
 	if (slot2_read<ARMCPU_ARM7, u32>(adr, slot2_val))

@@ -2439,7 +2439,7 @@ int _main()
 		else
 			ipaddr = *(u32 *)he->h_addr_list[0];
 		
-		u32 hash = (u32)GetCurrentProcessId();
+		u32 hash = 0x00e322a8; // (u32)GetCurrentProcessId();
 		
 		while ((hash & 0xFF000000) == 0)
 		{
