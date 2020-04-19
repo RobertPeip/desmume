@@ -2079,7 +2079,7 @@ void NDS_exec(s32 nb)
 				}
 			#endif
 
-		    if (nds.traclist_ptr == 3674)
+		    if (nds.traclist_ptr == 962)
 			//if (nds.commands == 1)
 		    {
 		    	int stop = 1;
@@ -2126,25 +2126,29 @@ void NDS_exec(s32 nb)
 
 
 			// debug out
-			if (nds.commands == 900000 && nds.runmoretrace == 0)
+			if (nds.commands == 22100000 && nds.runmoretrace == 0)
 			{
 				nds.traclist_ptr = 0;
-				nds.runmoretrace = 300000;
+				nds.runmoretrace = 100000;
 			}
 
-			if (nds.runmoretrace > 0)
+			if (nds.runmoretrace > 0 && nds.debug_outdivcnt == 0)
 			{
 				nds.Tracelist[nds.traclist_ptr][0].update(true);
 				nds.Tracelist[nds.traclist_ptr][1].update(false);
-				nds.traclist_ptr++;
-				nds.runmoretrace = nds.runmoretrace - 1;
+				if (nds.debug_outdivcnt == 0)
+				{
+					nds.traclist_ptr++;
+					nds.runmoretrace = nds.runmoretrace - 1;
+				}
 				if (nds.runmoretrace == 0)
 				{
 					nds.runmoretrace = -1;
-					nds.vcd_file_last();
+					//nds.vcd_file_last();
 				}
 			}
 			nds.commands++;
+			//nds.debug_outdivcnt = (nds.debug_outdivcnt + 1) % 250;
 		}
 	}
 
@@ -2731,6 +2735,10 @@ void NDS_Reset()
 		// Otherwise, just use our version of the firmware config.
 		NDS_ApplyFirmwareSettingsWithConfig(&MMU.fw.data, CommonSettings.fwConfig);
 	}
+
+	//FILE* file = fopen("R:\\firmware.bin", "wb");
+	//fwrite(&MMU.fw.data._raw, 262144, 1, file);
+	//fclose(file);
 	
 	// Finally, boot the firmware.
 	if (willBootFromFirmware)
@@ -2934,6 +2942,9 @@ void NDS_releaseTouch(void)
 	rawUserInput.touch.touchX = 0;
 	rawUserInput.touch.touchY = 0;
 	rawUserInput.touch.isTouch = false;
+	//rawUserInput.touch.touchX = 50 * 16;
+	//rawUserInput.touch.touchY = 50 * 16;
+	//rawUserInput.touch.isTouch = true;
 }
 void NDS_setMic(bool pressed)
 {
@@ -3315,15 +3326,15 @@ void cpustate::update(bool isArm9)
 	//this->memory01 = Memory.read_dword(0x04000200); // IME/IF
 	
 	this->memory01 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000000); // display settings
-	if (!isArm9)
-	{
-		this->memory02 = MMU_timing.arm7dataFetch.m_lastAddress;
-	}
-	else
-	{
-		this->memory02 = MMU_timing.arm9dataFetch.m_lastAddress;
-	}
-	//this->memory02 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x027ffce0);
+	//if (!isArm9)
+	//{
+	//	this->memory02 = MMU_timing.arm7dataFetch.m_lastAddress;
+	//}
+	//else
+	//{
+	//	this->memory02 = MMU_timing.arm9dataFetch.m_lastAddress;
+	//}
+	this->memory02 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000600);
 	this->memory03 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000004); // vcount
 	
 	this->debug_dmatranfers = nds.dma_transfers;

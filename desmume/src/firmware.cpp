@@ -1187,10 +1187,6 @@ void NDS_InitDefaultFirmware(NDSFirmwareData *outFirmware)
 	memset(outFirmware->wifiInfo.unused5, 0xFF, sizeof(outFirmware->wifiInfo.unused5));
 	
 	NDS_ApplyFirmwareSettingsWithConfig(outFirmware, defaultConfig);
-
-	//FILE* file = fopen("R:\\firmware.bin", "wb");
-	//fwrite(outFirmware->_raw, 262144, 1, file);
-	//fclose(file);
 }
 
 bool NDS_ReadFirmwareDataFromFile(const char *fileName, NDSFirmwareData *outFirmware, size_t *outFileSize, int *outConsoleType, u8 *outMACAddr)

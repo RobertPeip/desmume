@@ -4347,7 +4347,7 @@ void FASTCALL _MMU_ARM9_write32(u32 adr, u32 val)
 				case 0x40003A:
 				case 0x40003B:		//toon table
 					((u32 *)(MMU.ARM9_REG))[(adr & 0xFFF) >> 2] = val;
-					gfx3d_UpdateToonTable((adr & 0x3F) >> 1, val);
+					//gfx3d_UpdateToonTable((adr & 0x3F) >> 1, val);
 					return;
 					
 				case 0x400040:
@@ -4355,7 +4355,7 @@ void FASTCALL _MMU_ARM9_write32(u32 adr, u32 val)
 				case 0x400042:
 				case 0x400043:		// FIFO Commands
 					((u32 *)(MMU.ARM9_REG))[(adr & 0xFFF) >> 2] = val;
-					gfx3d_sendCommandToFIFO(val);
+					//gfx3d_sendCommandToFIFO(val);
 					return;
 					
 				case 0x400044:
@@ -4387,7 +4387,7 @@ void FASTCALL _MMU_ARM9_write32(u32 adr, u32 val)
 						nds.freezeBus |= 1;
 					
 					((u32 *)(MMU.ARM9_REG))[(adr & 0xFFF) >> 2] = val;
-					gfx3d_sendCommand(adr, val);
+					//gfx3d_sendCommand(adr, val);
 					return;
 					
 				default:

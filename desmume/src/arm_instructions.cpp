@@ -2356,6 +2356,7 @@ TEMPLATE static u32 FASTCALL  OP_MLA_S(const u32 i)
 //-----------------------------------------------------------------------------
 
 #define MUL_UMxxL_END(c) \
+	if ((int)v < 0) v = ~v; \
 	v >>= 8; \
 	if(v==0) \
 		return c+1; \
