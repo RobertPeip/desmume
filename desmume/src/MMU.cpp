@@ -2425,7 +2425,7 @@ u32 DmaController::read32()
 	ret |= repeatMode<<25;
 	ret |= sar<<23;
 	ret |= dar<<21;
-	ret |= wordcount;
+	//ret |= wordcount; wordcount is not readable!
 	//printf("dma %d,%d READ  %08X\n",procnum,chan,ret);
 	return ret;
 }

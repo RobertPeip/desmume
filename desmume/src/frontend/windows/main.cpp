@@ -3091,9 +3091,9 @@ static BOOL OpenCore(const char* filename)
 		FILE *testFs = fopen(batteryPathString.c_str(), "rb+");
 		if (testFs == NULL)
 		{
-			msgbox->warn("\
-Could not get read/write access to the battery save file! The file will not be saved in this current session.\n\n\
-Choose Config > Path Settings and ensure that the SaveRam directory exists and is available for read/write access.");
+//			msgbox->warn("\
+//Could not get read/write access to the battery save file! The file will not be saved in this current session.\n\n\
+//Choose Config > Path Settings and ensure that the SaveRam directory exists and is available for read/write access.");
 		}
 		else
 		{
