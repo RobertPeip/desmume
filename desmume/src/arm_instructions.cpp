@@ -4689,7 +4689,6 @@ TEMPLATE static u32 FASTCALL  OP_STRB_M_ROR_IMM_OFF_POSTIND(const u32 i)
 #define OP_L_DA(reg, adr)  if(BIT##reg(i)) \
 	{ \
 		registres[reg] = READ32(cpu->mem_if->data, start); \
-		c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_READ>(start); \
 		adr -= 4; \
 	}
 
@@ -4697,7 +4696,6 @@ TEMPLATE static u32 FASTCALL  OP_STRB_M_ROR_IMM_OFF_POSTIND(const u32 i)
 	{ \
 		adr -= 4; \
 		registres[reg] = READ32(cpu->mem_if->data, start); \
-		c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_READ>(start); \
 	}
 
 TEMPLATE static u32 FASTCALL  OP_LDMIA(const u32 i)
@@ -4804,6 +4802,15 @@ TEMPLATE static u32 FASTCALL  OP_LDMDA(const u32 i)
 	u32 start = cpu->R[REG_POS(i,16)];
 	
 	u32 * registres = cpu->R;
+
+	u32 timingadr = start;
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
+	}
 	
 	if(BIT15(i))
 	{
@@ -4835,6 +4842,15 @@ TEMPLATE static u32 FASTCALL  OP_LDMDA(const u32 i)
 	OP_L_DA(2, start);
 	OP_L_DA(1, start);
 	OP_L_DA(0, start);
+
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			c += MMU_memAccessCycles<PROCNUM, 32, MMU_AD_READ>(timingadr);
+			timingadr += 4;
+		}
+	}
 	
 	return MMU_aluMemCycles<PROCNUM>(2, c);
 }
@@ -4845,6 +4861,15 @@ TEMPLATE static u32 FASTCALL  OP_LDMDB(const u32 i)
 	u32 start = cpu->R[REG_POS(i,16)];
 	
 	u32 * registres = cpu->R;
+
+	u32 timingadr = start;
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
+	}
 	
 	if(BIT15(i))
 	{
@@ -4858,7 +4883,6 @@ TEMPLATE static u32 FASTCALL  OP_LDMDB(const u32 i)
 		else
 			registres[15] = tmp & 0xFFFFFFFC;
 		cpu->next_instruction = registres[15];
-		c += MMU_memAccessCycles<PROCNUM,32,MMU_AD_READ>(start);
 	}
 
 	OP_L_DB(14, start);
@@ -4876,6 +4900,16 @@ TEMPLATE static u32 FASTCALL  OP_LDMDB(const u32 i)
 	OP_L_DB(2, start);
 	OP_L_DB(1, start);
 	OP_L_DB(0, start);
+
+
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			c += MMU_memAccessCycles<PROCNUM, 32, MMU_AD_READ>(timingadr);
+			timingadr += 4;
+		}
+	}
 	
 	return MMU_aluMemCycles<PROCNUM>(2, c);
 }
@@ -4986,6 +5020,15 @@ TEMPLATE static u32 FASTCALL  OP_LDMDA_W(const u32 i)
 
 	u32 * registres = cpu->R;
 
+	u32 timingadr = start;
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
+	}
+
 	if(BIT15(i))
 	{
 		u32 tmp = READ32(cpu->mem_if->data, start);
@@ -5017,6 +5060,15 @@ TEMPLATE static u32 FASTCALL  OP_LDMDA_W(const u32 i)
 	OP_L_DA(1, start);
 	OP_L_DA(0, start);
 
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			c += MMU_memAccessCycles<PROCNUM, 32, MMU_AD_READ>(timingadr);
+			timingadr += 4;
+		}
+	}
+
 	if(i & (1 << REG_POS(i,16))) {
 		if(i & bitList)
 			cpu->R[REG_POS(i,16)] = start;
@@ -5033,6 +5085,15 @@ TEMPLATE static u32 FASTCALL  OP_LDMDB_W(const u32 i)
 	u32 start = cpu->R[REG_POS(i,16)];
 	u32 bitList = (~((2 << REG_POS(i,16))-1)) & 0xFFFF;
 	u32 * registres = cpu->R;
+
+	u32 timingadr = start;
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
+	}
 
 	if(BIT15(i))
 	{
@@ -5065,6 +5126,15 @@ TEMPLATE static u32 FASTCALL  OP_LDMDB_W(const u32 i)
 	OP_L_DB(2, start);
 	OP_L_DB(1, start);
 	OP_L_DB(0, start);
+
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			c += MMU_memAccessCycles<PROCNUM, 32, MMU_AD_READ>(timingadr);
+			timingadr += 4;
+		}
+	}
 
 	if(i & (1 << REG_POS(i,16))) {
 		if(i & bitList)
@@ -5203,6 +5273,15 @@ TEMPLATE static u32 FASTCALL  OP_LDMDA2(const u32 i)
 	}
 	
 	registres = cpu->R;
+
+	u32 timingadr = start;
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
+	}
 	
 	if(BIT15(i))
 	{
@@ -5230,6 +5309,15 @@ TEMPLATE static u32 FASTCALL  OP_LDMDA2(const u32 i)
 	OP_L_DA(2, start);
 	OP_L_DA(1, start);
 	OP_L_DA(0, start);
+
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			c += MMU_memAccessCycles<PROCNUM, 32, MMU_AD_READ>(timingadr);
+			timingadr += 4;
+		}
+	}
 	
 	if(BIT15(i)==0)
 	{
@@ -5257,6 +5345,15 @@ TEMPLATE static u32 FASTCALL  OP_LDMDB2(const u32 i)
 	{  
 		if((cpu->CPSR.bits.mode==USR)||(cpu->CPSR.bits.mode==SYS)) { printf("ERROR1\n"); return 1; }
 		oldmode = armcpu_switchMode(cpu, SYS);
+	}
+
+	u32 timingadr = start;
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
 	}
 
 	registres = cpu->R;
@@ -5288,6 +5385,15 @@ TEMPLATE static u32 FASTCALL  OP_LDMDB2(const u32 i)
 	OP_L_DB(2, start);
 	OP_L_DB(1, start);
 	OP_L_DB(0, start);
+
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			c += MMU_memAccessCycles<PROCNUM, 32, MMU_AD_READ>(timingadr);
+			timingadr += 4;
+		}
+	}
 	
 	if(BIT15(i)==0)
 	{
@@ -5427,7 +5533,16 @@ TEMPLATE static u32 FASTCALL  OP_LDMDA2_W(const u32 i)
 	u32 start = cpu->R[REG_POS(i,16)];
 	u32 * registres;
 	Status_Reg SPSR;
-//	emu_halt();	
+
+	u32 timingadr = start;
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
+	}
+
 	if(BIT15(i)==0)
 	{  
 		if((cpu->CPSR.bits.mode==USR)||(cpu->CPSR.bits.mode==SYS)) { printf("ERROR1\n"); return 1; }
@@ -5461,6 +5576,15 @@ TEMPLATE static u32 FASTCALL  OP_LDMDA2_W(const u32 i)
 	OP_L_DA(2, start);
 	OP_L_DA(1, start);
 	OP_L_DA(0, start);
+
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			c += MMU_memAccessCycles<PROCNUM, 32, MMU_AD_READ>(timingadr);
+			timingadr += 4;
+		}
+	}
 	
 	if (!BIT_N(i, REG_POS(i,16)))
 		registres[REG_POS(i,16)] = start;
@@ -5486,7 +5610,16 @@ TEMPLATE static u32 FASTCALL  OP_LDMDB2_W(const u32 i)
 	u32 start = cpu->R[REG_POS(i,16)];
 	u32 * registres;
 	Status_Reg SPSR;
-//	emu_halt();	
+
+	u32 timingadr = start;
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			timingadr -= 4;
+		}
+	}
+
 	if(BIT15(i)==0)
 	{  
 		if((cpu->CPSR.bits.mode==USR)||(cpu->CPSR.bits.mode==SYS)) { printf("ERROR1\n"); return 1; }
@@ -5523,6 +5656,15 @@ TEMPLATE static u32 FASTCALL  OP_LDMDB2_W(const u32 i)
 	OP_L_DB(2, start);
 	OP_L_DB(1, start);
 	OP_L_DB(0, start);
+
+	for (int b = 0; b < 16; b++)
+	{
+		if (BIT_N(i, 15 - b))
+		{
+			c += MMU_memAccessCycles<PROCNUM, 32, MMU_AD_READ>(timingadr);
+			timingadr += 4;
+		}
+	}
 	
 	if (!BIT_N(i, REG_POS(i,16)))
 		registres[REG_POS(i,16)] = start;
