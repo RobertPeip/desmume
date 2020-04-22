@@ -2643,7 +2643,7 @@ void gfx3d_sendCommand(u32 cmd, u32 param)
 		case 0x71:		// POS_TEST - Set Position Coordinates for Test (W)
 		case 0x72:		// VEC_TEST - Set Directional Vector for Test (W)
 			//printf("mmu: sending %02X: %08X\n", cmd,param);
-			GFX_FIFOsend(cmd, param);
+			//GFX_FIFOsend(cmd, param);
 			break;
 		case 0x50:		// SWAP_BUFFERS - Swap Rendering Engine Buffer (W)
 			//printf("mmu: sending %02X: %08X\n", cmd,param);

@@ -4387,7 +4387,7 @@ void FASTCALL _MMU_ARM9_write32(u32 adr, u32 val)
 						nds.freezeBus |= 1;
 					
 					((u32 *)(MMU.ARM9_REG))[(adr & 0xFFF) >> 2] = val;
-					//gfx3d_sendCommand(adr, val);
+					gfx3d_sendCommand(adr, val);
 					return;
 					
 				default:
