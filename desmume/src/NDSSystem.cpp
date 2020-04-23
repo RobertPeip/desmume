@@ -1915,16 +1915,7 @@ static /*donotinline*/ std::pair<s32,s32> armInnerLoop(
 		{
 			if(!(NDS_ARM9.freeze & CPU_FREEZE_WAIT_IRQ) && !nds.freezeBus)
 			{
-				arm9log();
-				debug();
-#ifdef HAVE_JIT
-				arm9 += armcpu_exec<ARMCPU_ARM9,jit>();
-#else
 				arm9 += armcpu_exec<ARMCPU_ARM9>();
-#endif
-				#ifdef DEVELOPER
-					nds_debug_continuing[0] = false;
-				#endif
 			}
 			else
 			{
@@ -1939,30 +1930,13 @@ static /*donotinline*/ std::pair<s32,s32> armInnerLoop(
 			bool cpufreeze = !!(NDS_ARM7.freeze & (CPU_FREEZE_WAIT_IRQ|CPU_FREEZE_OVERCLOCK_HACK));
 			if(!cpufreeze && !nds.freezeBus)
 			{
-				arm7log();
-#ifdef HAVE_JIT
-				arm7 += (armcpu_exec<ARMCPU_ARM7,jit>()<<1);
-#else
 				arm7 += (armcpu_exec<ARMCPU_ARM7>()<<1);
-#endif
-				#ifdef DEVELOPER
-					nds_debug_continuing[1] = false;
-				#endif
 			}
 			else
 			{
 				s32 temp = arm7;
 				arm7 = min(s32next, arm7 + kIrqWait);
 				nds.idleCycles[1] += arm7-temp;
-				//if(arm7 == s32next)
-				//{
-				//	nds_timer = nds_timer_base + minarmtime<doarm9,false>(arm9,arm7);
-#ifdef HAVE_JIT	//
-				//	return armInnerLoop<doarm9,false,jit>(nds_timer_base, s32next, arm9, arm7);
-#else			//
-				//	return armInnerLoop<doarm9,false>(nds_timer_base, s32next, arm9, arm7);
-#endif			//
-				//}
 			}
 		}
 
@@ -2079,37 +2053,68 @@ void NDS_exec(s32 nb)
 				}
 			#endif
 
-		    if (nds.traclist_ptr == 962)
+		    if (nds.traclist_ptr == 11234)
 			//if (nds.commands == 1)
 		    {
 		    	int stop = 1;
 		    }
 
-#ifdef HAVE_JIT
-			std::pair<s32,s32> arm9arm7 = CommonSettings.use_jit
-				? armInnerLoop<true,true,true>(nds_timer_base,s32next,arm9,arm7)
-				: armInnerLoop<true,true,false>(nds_timer_base,s32next,arm9,arm7);
-#else
-				std::pair<s32,s32> arm9arm7 = armInnerLoop<true,true>(nds_timer_base,s32next,arm9,arm7);
-#endif
+			//std::pair<s32,s32> arm9arm7 = armInnerLoop<true,true>(nds_timer_base,s32next,arm9,arm7);
 
-			#ifdef DEVELOPER
-				if(singleStep)
+			// inline
+			s32 timer = min(arm9, arm7);
+			while(timer < s32next && !sequencer.reschedule && execute)
+			{
+				if (timer == 0x3)
 				{
-					NDS_ARM9.stalled = NDS_ARM7.stalled = 1;
+					int stop = 1;
 				}
-			#endif
+
+				if (arm9 <= timer)
+				{
+					if (!(NDS_ARM9.freeze & CPU_FREEZE_WAIT_IRQ) && !nds.freezeBus)
+					{
+						arm9 += armcpu_exec<ARMCPU_ARM9>();
+					}
+					else
+					{
+						s32 temp = arm9;
+						arm9 = min(s32next, arm9 + kIrqWait);
+						nds.idleCycles[0] += arm9 - temp;
+						if (gxFIFO.size < 255) nds.freezeBus &= ~1;
+					}
+				}
+				if (arm7 <= timer)
+				{
+					bool cpufreeze = !!(NDS_ARM7.freeze & (CPU_FREEZE_WAIT_IRQ | CPU_FREEZE_OVERCLOCK_HACK));
+					if (!cpufreeze && !nds.freezeBus)
+					{
+						arm7 += (armcpu_exec<ARMCPU_ARM7>() << 1);
+					}
+					else
+					{
+						s32 temp = arm7;
+						arm7 = min(s32next, arm7 + kIrqWait);
+						nds.idleCycles[1] += arm7 - temp;
+					}
+				}
+
+				if (sequencer.reschedule)
+				{
+					int stop = 1;
+				}
+
+				timer = min(arm9, arm7);
+				nds_timer = nds_timer_base + timer;
+			}
+			std::pair<s32, s32> arm9arm7 = std::make_pair(arm9, arm7);
+			// end inline
+
 
 			arm9 = arm9arm7.first;
 			arm7 = arm9arm7.second;
 			nds_arm7_timer = nds_timer_base+arm7;
 			nds_arm9_timer = nds_timer_base+arm9;
-
-#ifndef NDEBUG
-			//what we find here is dependent on the timing constants above
-			//if(nds_timer>next && (nds_timer-next)>22)
-			//	printf("curious. please report: over by %d\n",(int)(nds_timer-next));
-#endif
 
 			//if we were waiting for an irq, don't wait too long:
 			//let's re-analyze it after this hardware event (this rolls back a big burst of irq waiting which may have been interrupted by a resynch)
@@ -2126,7 +2131,7 @@ void NDS_exec(s32 nb)
 
 
 			// debug out
-			if (nds.commands == 22100000 && nds.runmoretrace == 0)
+			if (nds.commands == 00000 && nds.runmoretrace == 0)
 			{
 				nds.traclist_ptr = 0;
 				nds.runmoretrace = 100000;
@@ -2148,7 +2153,7 @@ void NDS_exec(s32 nb)
 				}
 			}
 			nds.commands++;
-			//nds.debug_outdivcnt = (nds.debug_outdivcnt + 1) % 250;
+			//nds.debug_outdivcnt = (nds.debug_outdivcnt + 1) % 100;
 		}
 	}
 
@@ -3334,7 +3339,8 @@ void cpustate::update(bool isArm9)
 	//{
 	//	this->memory02 = MMU_timing.arm9dataFetch.m_lastAddress;
 	//}
-	this->memory02 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000600);
+	this->memory02 = gxFIFO.size;
+	//this->memory02 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000600);
 	this->memory03 = _MMU_read32(procnum, MMU_ACCESS_TYPE::MMU_AT_DEBUG, 0x04000004); // vcount
 	
 	this->debug_dmatranfers = nds.dma_transfers;

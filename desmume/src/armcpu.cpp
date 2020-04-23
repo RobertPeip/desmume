@@ -600,73 +600,8 @@ u32 TRAPUNDEF(armcpu_t* cpu)
 template<int PROCNUM>
 u32 armcpu_exec()
 {
-	// Usually, fetching and executing are processed parallelly.
-	// So this function stores the cycles of each process to
-	// the variables below, and returns appropriate cycle count.
 	u32 cFetch = 0;
 	u32 cExecute = 0;
-
-	//this assert is annoying. but sometimes it is handy.
-	//assert(ARMPROC.instruct_adr!=0x00000000);
-//#ifdef DEVELOPER
-#if 0
-	if ((((ARMPROC.instruct_adr & 0x0F000000) == 0x0F000000) && (PROCNUM == 0)) ||
-		(((ARMPROC.instruct_adr & 0x0F000000) == 0x00000000) && (PROCNUM == 1)))
-	{
-		switch (ARMPROC.instruct_adr & 0xFFFF)
-		{
-			case 0x00000000:
-				printf("BIOS%c: Reset!!!\n", PROCNUM?'7':'9');
-				emu_halt();
-				break;
-			case 0x00000004:
-				printf("BIOS%c: Undefined instruction\n", PROCNUM?'7':'9');
-				//emu_halt();
-				break;
-			case 0x00000008:
-				//printf("BIOS%c: SWI\n", PROCNUM?'7':'9');
-				break;
-			case 0x0000000C:
-				printf("BIOS%c: Prefetch Abort!!!\n", PROCNUM?'7':'9');
-				//emu_halt();
-				break;
-			case 0x00000010:
-				//printf("BIOS%c: Data Abort!!!\n", PROCNUM?'7':'9');
-				//emu_halt();
-				break;
-			case 0x00000014:
-				printf("BIOS%c: Reserved!!!\n", PROCNUM?'7':'9');
-				break;
-			case 0x00000018:
-				//printf("BIOS%c: IRQ\n", PROCNUM?'7':'9');
-				break;
-			case 0x0000001C:
-				printf("BIOS%c: Fast IRQ\n", PROCNUM?'7':'9');
-				break;
-		}
-	}
-#endif
-
-#if 0 //#ifdef GDB_STUB
-	if (ARMPROC.stalled) {
-		return STALLED_CYCLE_COUNT;
-	}
-
-	/* check for interrupts */
-	if (ARMPROC.irq_flag) {
-		armcpu_irqException(&ARMPROC);
-	}
-
-	cFetch = armcpu_prefetch(&ARMPROC);
-
-	if (ARMPROC.stalled) {
-		return MMU_fetchExecuteCycles<PROCNUM>(cExecute, cFetch);
-	}
-#endif
-
-	//cFetch = armcpu_prefetch(&ARMPROC);
-
-	//printf("%d: %08X\n",PROCNUM,ARMPROC.instruct_adr);
 
 	if(ARMPROC.CPSR.bits.T == 0)
 	{
@@ -675,44 +610,22 @@ u32 armcpu_exec()
 			|| (TEST_COND(CONDITION(ARMPROC.instruction), CODE(ARMPROC.instruction), ARMPROC.CPSR)) //handles any condition
 			)
 		{
-#ifdef HAVE_LUA
-			CallRegisteredLuaMemHook(ARMPROC.instruct_adr, 4, ARMPROC.instruction, LUAMEMHOOK_EXEC); // should report even if condition=false?
-#endif
-			#ifdef DEVELOPER
-			DEBUG_statistics.instructionHits[PROCNUM].arm[INSTRUCTION_INDEX(ARMPROC.instruction)]++;
-			#endif
 			cExecute = arm_instructions_set[PROCNUM][INSTRUCTION_INDEX(ARMPROC.instruction)](ARMPROC.instruction);
 		}
 		else
+		{
 			cExecute = 1; // If condition=false: 1S cycle
-#ifdef GDB_STUB
-		if ( ARMPROC.post_ex_fn != NULL) {
-			/* call the external post execute function */
-			ARMPROC.post_ex_fn(ARMPROC.post_ex_fn_data, ARMPROC.instruct_adr, 0);
 		}
-		ARMPROC.mem_if->prefetch32( ARMPROC.mem_if->data, ARMPROC.next_instruction);
-#endif
+
 		cFetch = armcpu_prefetch<PROCNUM>();
 		return MMU_fetchExecuteCycles<PROCNUM>(cExecute, cFetch);
 	}
-
-#ifdef HAVE_LUA
-	CallRegisteredLuaMemHook(ARMPROC.instruct_adr, 2, ARMPROC.instruction, LUAMEMHOOK_EXEC);
-#endif
-	#ifdef DEVELOPER
-	DEBUG_statistics.instructionHits[PROCNUM].thumb[ARMPROC.instruction>>6]++;
-	#endif
-	cExecute = thumb_instructions_set[PROCNUM][ARMPROC.instruction>>6](ARMPROC.instruction);
-
-#ifdef GDB_STUB
-	if ( ARMPROC.post_ex_fn != NULL) {
-		/* call the external post execute function */
-		ARMPROC.post_ex_fn( ARMPROC.post_ex_fn_data, ARMPROC.instruct_adr, 1);
+	else
+	{
+		cExecute = thumb_instructions_set[PROCNUM][ARMPROC.instruction >> 6](ARMPROC.instruction);
+		cFetch = armcpu_prefetch<PROCNUM>();
+		return MMU_fetchExecuteCycles<PROCNUM>(cExecute, cFetch);
 	}
-	ARMPROC.mem_if->prefetch32( ARMPROC.mem_if->data, ARMPROC.next_instruction);
-#endif
-	cFetch = armcpu_prefetch<PROCNUM>();
-	return MMU_fetchExecuteCycles<PROCNUM>(cExecute, cFetch);
 }
 
 //these templates needed to be instantiated manually
